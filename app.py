@@ -19,7 +19,7 @@ def haversine(lat1, lon1, lat2, lon2):
 
 # ====== UI ======
 st.set_page_config(page_title="FT Job Assistant Mobile", layout="centered")
-st.title("📱 Hệ thống hỗ trợ FT trên điện thoại")
+st.title("📱 HỖ TRỢ FT")
 
 df = load_data()
 
