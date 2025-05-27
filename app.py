@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -25,7 +24,7 @@ df = load_data()
 
 # --- Chuẩn hóa mã nhân viên ---
 available_users = df['Nhân viên thực hiện'].dropna().astype(str).str.lower().unique()
-user_code = st.text_input("🔑 Nhập mã nhân viên (user Vsmart)", value="").strip().lower()
+user_code = st.text_input("🔑 Nhập mã nhân viên", value="").strip().lower()
 
 if user_code not in available_users:
     st.warning("Mã nhân viên không hợp lệ hoặc chưa có trong hệ thống.")
@@ -35,7 +34,7 @@ if user_code not in available_users:
 user_df = df[df['Nhân viên thực hiện'].astype(str).str.lower() == user_code]
 
 # --- Hiển thị công việc gần quá hạn ---
-st.subheader("⚠️ Công việc đã/ sắp hết hạn (< 24h)")
+st.subheader("⚠️ Công việc sắp hết hạn (< 24h)")
 near_due = user_df[user_df['Thời gian còn lại (H)'] <= 24].copy()
 near_due['Nội dung công việc'] = near_due['Nội dung công việc'].astype(str).str.slice(0, 40)
 near_due = near_due[['Mã trạm','Nội dung công việc','Thời gian còn lại (H)']].sort_values('Thời gian còn lại (H)')
@@ -43,7 +42,7 @@ st.dataframe(near_due, use_container_width=True, hide_index=True)
 
 # --- Nhập mã trạm ---
 st.subheader("🏗️ Kiểm tra công việc tại trạm")
-station = st.text_input("📍 Nhập mã trạm (ví dụ: GLI0297)", value="").strip().upper()
+station = st.text_input("📍 Nhập mã trạm (ví dụ: GLI0297)", value="GLI0297").strip().upper()
 
 if station:
     station_df = user_df[user_df['Mã trạm'] == station].copy()
@@ -52,13 +51,13 @@ if station:
     st.write(f"Các công việc của bạn tại trạm **{station}**:")
     st.dataframe(station_df, use_container_width=True, hide_index=True)
 
-    # Gợi ý công việc khác (ưu tiên gần + gần hết hạn)
-    st.subheader("🚀 Gợi ý trạm tiếp theo")
+    # --- Gợi ý công việc tiếp theo gần trạm hiện tại ---
+    st.subheader("🌐 Gợi ý công việc khác gần đó và ưu tiên")
     if not station_df.empty:
         lat0, lon0 = df[df['Mã trạm'] == station].iloc[0]['Vĩ độ'], df[df['Mã trạm'] == station].iloc[0]['Kinh độ']
         other_jobs = user_df[user_df['Mã trạm'] != station].copy()
         other_jobs['Distance_km'] = haversine(lat0, lon0, other_jobs['Vĩ độ'], other_jobs['Kinh độ'])
         other_jobs['Nội dung công việc'] = other_jobs['Nội dung công việc'].astype(str).str.slice(0, 40)
         suggested = other_jobs.sort_values(['Thời gian còn lại (H)', 'Distance_km'])
-        suggested = suggested[['Mã trạm','Nội dung công việc','Thời gian còn lại (H)','Distance_km']]
+        suggested = suggested[['Mã trạm','Nội dung công việc','Distance_km','Thời gian còn lại (H)']]
         st.dataframe(suggested, use_container_width=True, hide_index=True)
